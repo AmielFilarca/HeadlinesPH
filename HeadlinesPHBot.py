@@ -64,6 +64,14 @@ def get_date(entry):
         return ""
 
 
+def get_link(entry):
+    try:
+        link = entry.link
+        return link
+    except AttributeError:
+        return ""
+
+
 def get_media(entry):
     news_content = get_image(entry)
     return news_content
@@ -80,6 +88,10 @@ def get_text(entry):
         + get_author(entry)
         + "</i>"
         + get_date(entry)
+        + "\n"
+        + '<a href="'
+        + get_link(entry)
+        + '">Read more</a>'
     )
     return news_content
 
@@ -122,6 +134,7 @@ def send_news(update, context):
             text=text,
             parse_mode=telegram.ParseMode.HTML,
             reply_markup=reply_markup,
+            disable_web_page_preview=True,
         )
     else:
         context.bot.send_message(
@@ -129,6 +142,7 @@ def send_news(update, context):
             text=text,
             parse_mode=telegram.ParseMode.HTML,
             reply_markup=reply_markup,
+            disable_web_page_preview=True,
         )
 
 
@@ -146,6 +160,7 @@ def send_latest(update, context):
             text=text,
             parse_mode=telegram.ParseMode.HTML,
             reply_markup=reply_markup,
+            disable_web_page_preview=True,
         )
     else:
         context.bot.send_message(
@@ -153,6 +168,7 @@ def send_latest(update, context):
             text=text,
             parse_mode=telegram.ParseMode.HTML,
             reply_markup=reply_markup,
+            disable_web_page_preview=True,
         )
 
 
