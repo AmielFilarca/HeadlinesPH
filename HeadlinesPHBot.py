@@ -1,14 +1,19 @@
 import json
-from telegram.ext import Updater
 import logging
-from telegram.ext import CommandHandler
-from telegram.ext import CallbackQueryHandler, Filters, MessageHandler
 import feedparser
 from bs4 import BeautifulSoup
 import random
 from functools import wraps
-from telegram import ChatAction, InlineKeyboardButton, InlineKeyboardMarkup
 import telegram
+from telegram import ChatAction, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    Updater,
+    CommandHandler,
+    CallbackQueryHandler,
+    Filters,
+    MessageHandler,
+)
+
 
 # Get
 def get_entries():
