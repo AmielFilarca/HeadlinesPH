@@ -159,7 +159,7 @@ def start(update, context):
 @send_typing_action
 def send_top_headline(update, context):
     entries = get_top_headlines_entries()
-    entry = entries[random.randrange(len(entries) - 1)]
+    entry = entries[random.randrange(len(entries))]
     if get_content(entry) == "None":
         photo = get_image_url(entry)
         message = (
@@ -307,7 +307,7 @@ def send_top_headline(update, context):
 @send_typing_action
 def send_business_news(update, context):
     entries = get_business_news_entries()
-    entry = entries[random.randrange(len(entries) - 1)]
+    entry = entries[random.randrange(len(entries))]
     if get_content(entry) == "None":
         photo = get_image_url(entry)
         message = (
@@ -455,7 +455,7 @@ def send_business_news(update, context):
 @send_typing_action
 def send_entertainment_news(update, context):
     entries = get_entertainment_news_entries()
-    entry = entries[random.randrange(len(entries) - 1)]
+    entry = entries[random.randrange(len(entries))]
     if get_content(entry) == "None":
         photo = get_image_url(entry)
         message = (
@@ -603,7 +603,7 @@ def send_entertainment_news(update, context):
 @send_typing_action
 def send_health_news(update, context):
     entries = get_health_news_entries()
-    entry = entries[random.randrange(len(entries) - 1)]
+    entry = entries[random.randrange(len(entries))]
     if get_content(entry) == "None":
         photo = get_image_url(entry)
         message = (
@@ -751,7 +751,7 @@ def send_health_news(update, context):
 @send_typing_action
 def send_science_news(update, context):
     entries = get_science_news_entries()
-    entry = entries[random.randrange(len(entries) - 1)]
+    entry = entries[random.randrange(len(entries))]
     if get_content(entry) == "None":
         photo = get_image_url(entry)
         message = (
@@ -899,7 +899,7 @@ def send_science_news(update, context):
 @send_typing_action
 def send_sports_news(update, context):
     entries = get_sports_news_entries()
-    entry = entries[random.randrange(len(entries) - 1)]
+    entry = entries[random.randrange(len(entries))]
     if get_content(entry) == "None":
         photo = get_image_url(entry)
         message = (
@@ -1047,7 +1047,7 @@ def send_sports_news(update, context):
 @send_typing_action
 def send_technology_news(update, context):
     entries = get_technology_news_entries()
-    entry = entries[random.randrange(len(entries) - 1)]
+    entry = entries[random.randrange(len(entries))]
     if get_content(entry) == "None":
         photo = get_image_url(entry)
         message = (
@@ -1230,7 +1230,7 @@ def send_custom_news(update, context):
                 disable_web_page_preview=True,
             )
     else:
-        entry = entries[random.randrange(len(entries) - 1)]
+        entry = entries[random.randrange(len(entries))]
         if get_content(entry) == "None":
             photo = get_image_url(entry)
             message = (
