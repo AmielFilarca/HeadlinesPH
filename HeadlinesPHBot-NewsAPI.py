@@ -293,7 +293,7 @@ def get_cases_dict():
 def get_covid_report():
     cases_dict = get_cases_dict()
     report = (
-        "🇵🇭 <b>Philippines</b>"
+        "🇵🇭 <b>Philippines COVID-19 Report</b>"
         + "\n"
         + "• <b>Cases:</b> "
         + cases_dict["cases"]
