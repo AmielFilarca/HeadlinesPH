@@ -13,17 +13,103 @@ from telegram.ext import (
 )
 from newsapi.newsapi_client import NewsApiClient
 from dateutil.parser._parser import parse
+import feedparser
+from bs4 import BeautifulSoup
+from datetime import datetime
+from pytz import timezone
 
 
 # Get functions
 def get_top_headlines_entries():
     with open("API-keys.json") as tokens:
         api_keys = json.load(tokens)
-    newsapi_key = api_keys["NewsAPI"]
-    newsapi = NewsApiClient(api_key=newsapi_key)
-    top_headlines = newsapi.get_top_headlines(country="ph")
-    entries = top_headlines["articles"]
+    url = api_keys["Google RSS"]
+    NewsFeed = feedparser.parse(url)
+    entries = NewsFeed.entries
     return entries
+
+
+def get_rss_headline(entry):
+    try:
+        headline = entry.title
+        return headline
+    except AttributeError:
+        return ""
+
+
+def get_rss_summary(entry):
+    try:
+        html = entry.summary
+        parsed_html = BeautifulSoup(html, features="html.parser")
+        summary = parsed_html.find("div").text
+        if summary == "":
+            src = parsed_html.find("iframe").get("src")
+            summary = "Watch: " + src
+        return summary
+    except AttributeError:
+        return ""
+
+
+def get_rss_author(entry):
+    try:
+        author = entry.author
+        return author
+    except AttributeError:
+        return ""
+
+
+def get_rss_date(entry):
+    try:
+        date_str = entry.published
+        date_dt = parse(date_str)
+        date_format = "%a, %d %b %Y @ %I:%M %p"
+        manila_tz = date_dt.astimezone(timezone("Asia/Manila"))
+        date = manila_tz.strftime(date_format)
+        return date
+    except AttributeError:
+        return ""
+
+
+def get_rss_link(entry):
+    try:
+        link = entry.link
+        return link
+    except AttributeError:
+        return ""
+
+
+def get_rss_image(entry):
+    try:
+        thisdict = entry.media_content[0]
+        media = thisdict["url"]
+        print("Image: " + media)
+        return media
+    except AttributeError:
+        return ""
+
+
+def get_rss_text(entry):
+    news_content = (
+        "<b>"
+        + get_rss_headline(entry)
+        + "</b>"
+        + "\n"
+        + get_rss_summary(entry)
+        + "\n"
+        + '<a href="'
+        + get_rss_link(entry)
+        + '">Read more</a>'
+        + "\n"
+        + get_rss_author(entry)
+        + "\n"
+        + get_rss_date(entry)
+    )
+    print("Title: " + get_rss_headline(entry))
+    print("Summary: " + get_rss_summary(entry))
+    print("Link: " + get_rss_link(entry))
+    print("Source: " + get_rss_author(entry))
+    print("Date: " + get_rss_date(entry))
+    return news_content
 
 
 def get_business_news_entries():
@@ -158,149 +244,170 @@ def start(update, context):
 # Top headlines
 @send_typing_action
 def send_top_headline(update, context):
+    # * Google RSS
     entries = get_top_headlines_entries()
     entry = entries[random.randrange(len(entries))]
-    if get_content(entry) == "None":
-        photo = get_image_url(entry)
-        message = (
-            "<b>"
-            + get_title(entry)
-            + "</b>"
-            + "\n"
-            + "<i>"
-            + get_description(entry)
-            + "</i>"
-            + "\n"
-            + '<a href="'
-            + get_article_url(entry)
-            + '">[Continue reading]</a>'
-            + "\n"
-            + get_source(entry)
-            + "\n"
-            + get_date(entry)
+    media = get_rss_image(entry)
+    text = get_rss_text(entry)
+    if media:
+        context.bot.send_photo(chat_id=update.effective_chat.id, photo=media)
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=text,
+            parse_mode=telegram.ParseMode.HTML,
+            disable_web_page_preview=True,
         )
-        try:
-            context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo)
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=message,
-                parse_mode=telegram.ParseMode.HTML,
-                disable_web_page_preview=True,
-            )
-        except:
-            message = (
-                "<b>"
-                + get_title(entry)
-                + "</b>"
-                + "\n"
-                + '<a href="'
-                + get_article_url(entry)
-                + '">[Continue reading]</a>'
-                + "\n"
-                + get_source(entry)
-                + "\n"
-                + get_date(entry)
-            )
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=message,
-                parse_mode=telegram.ParseMode.HTML,
-                disable_web_page_preview=True,
-            )
-
-        print("Image: " + get_image_url(entry))
-        print("Title: " + get_title(entry))
-        print("Description: " + get_description(entry))
-        print("Content: " + get_content(entry))
-        print("URL: " + get_article_url(entry))
-        print("Source: " + get_source(entry))
-        print("Date: " + get_date(entry))
-        print("\n")
     else:
-        photo = get_image_url(entry)
-        message = (
-            "<b>"
-            + get_title(entry)
-            + "</b>"
-            + "\n"
-            + "<i>"
-            + get_description(entry)
-            + "</i>"
-            + "\n"
-            + get_content(entry).replace("\n", ". ")
-            + "\n"
-            + '<a href="'
-            + get_article_url(entry)
-            + '">[Continue reading]</a>'
-            + "\n"
-            + get_source(entry)
-            + "\n"
-            + get_date(entry)
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=text,
+            parse_mode=telegram.ParseMode.HTML,
+            disable_web_page_preview=True,
         )
-        try:
-            context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo)
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=message,
-                parse_mode=telegram.ParseMode.HTML,
-                disable_web_page_preview=True,
-            )
-        except:
-            try:
-                message = (
-                    "<b>"
-                    + get_title(entry)
-                    + "</b>"
-                    + "\n"
-                    + get_content(entry).replace("\n", ". ")
-                    + "\n"
-                    + '<a href="'
-                    + get_article_url(entry)
-                    + '">[Continue reading]</a>'
-                    + "\n"
-                    + get_source(entry)
-                    + "\n"
-                    + get_date(entry)
-                )
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=message,
-                    parse_mode=telegram.ParseMode.HTML,
-                    disable_web_page_preview=True,
-                )
-            except:
-                message = (
-                    "<b>"
-                    + get_title(entry)
-                    + "</b>"
-                    + "\n"
-                    + "<i>"
-                    + get_description(entry)
-                    + "</i>"
-                    + "\n"
-                    + '<a href="'
-                    + get_article_url(entry)
-                    + '">[Continue reading]</a>'
-                    + "\n"
-                    + get_source(entry)
-                    + "\n"
-                    + get_date(entry)
-                )
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=message,
-                    parse_mode=telegram.ParseMode.HTML,
-                    disable_web_page_preview=True,
-                )
+    # * News API
+    # entries = get_top_headlines_entries()
+    # entry = entries[random.randrange(len(entries))]
+    # if get_content(entry) == "None":
+    #     photo = get_image_url(entry)
+    #     message = (
+    #         "<b>"
+    #         + get_title(entry)
+    #         + "</b>"
+    #         + "\n"
+    #         + "<i>"
+    #         + get_description(entry)
+    #         + "</i>"
+    #         + "\n"
+    #         + '<a href="'
+    #         + get_article_url(entry)
+    #         + '">[Continue reading]</a>'
+    #         + "\n"
+    #         + get_source(entry)
+    #         + "\n"
+    #         + get_date(entry)
+    #     )
+    #     try:
+    #         context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo)
+    #         context.bot.send_message(
+    #             chat_id=update.effective_chat.id,
+    #             text=message,
+    #             parse_mode=telegram.ParseMode.HTML,
+    #             disable_web_page_preview=True,
+    #         )
+    #     except:
+    #         message = (
+    #             "<b>"
+    #             + get_title(entry)
+    #             + "</b>"
+    #             + "\n"
+    #             + '<a href="'
+    #             + get_article_url(entry)
+    #             + '">[Continue reading]</a>'
+    #             + "\n"
+    #             + get_source(entry)
+    #             + "\n"
+    #             + get_date(entry)
+    #         )
+    #         context.bot.send_message(
+    #             chat_id=update.effective_chat.id,
+    #             text=message,
+    #             parse_mode=telegram.ParseMode.HTML,
+    #             disable_web_page_preview=True,
+    #         )
 
-        print("Image: " + get_image_url(entry))
-        print("Title: " + get_title(entry))
-        print("Description: " + get_description(entry))
-        print("Content: " + get_content(entry).replace("\n", ". "))
-        print("URL: " + get_article_url(entry))
-        print("Source: " + get_source(entry))
-        print("Date: " + get_date(entry))
-        print("\n")
+    #     print("Image: " + get_image_url(entry))
+    #     print("Title: " + get_title(entry))
+    #     print("Description: " + get_description(entry))
+    #     print("Content: " + get_content(entry))
+    #     print("URL: " + get_article_url(entry))
+    #     print("Source: " + get_source(entry))
+    #     print("Date: " + get_date(entry))
+    #     print("\n")
+    # else:
+    #     photo = get_image_url(entry)
+    #     message = (
+    #         "<b>"
+    #         + get_title(entry)
+    #         + "</b>"
+    #         + "\n"
+    #         + "<i>"
+    #         + get_description(entry)
+    #         + "</i>"
+    #         + "\n"
+    #         + get_content(entry).replace("\n", ". ")
+    #         + "\n"
+    #         + '<a href="'
+    #         + get_article_url(entry)
+    #         + '">[Continue reading]</a>'
+    #         + "\n"
+    #         + get_source(entry)
+    #         + "\n"
+    #         + get_date(entry)
+    #     )
+    #     try:
+    #         context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo)
+    #         context.bot.send_message(
+    #             chat_id=update.effective_chat.id,
+    #             text=message,
+    #             parse_mode=telegram.ParseMode.HTML,
+    #             disable_web_page_preview=True,
+    #         )
+    #     except:
+    #         try:
+    #             message = (
+    #                 "<b>"
+    #                 + get_title(entry)
+    #                 + "</b>"
+    #                 + "\n"
+    #                 + get_content(entry).replace("\n", ". ")
+    #                 + "\n"
+    #                 + '<a href="'
+    #                 + get_article_url(entry)
+    #                 + '">[Continue reading]</a>'
+    #                 + "\n"
+    #                 + get_source(entry)
+    #                 + "\n"
+    #                 + get_date(entry)
+    #             )
+    #             context.bot.send_message(
+    #                 chat_id=update.effective_chat.id,
+    #                 text=message,
+    #                 parse_mode=telegram.ParseMode.HTML,
+    #                 disable_web_page_preview=True,
+    #             )
+    #         except:
+    #             message = (
+    #                 "<b>"
+    #                 + get_title(entry)
+    #                 + "</b>"
+    #                 + "\n"
+    #                 + "<i>"
+    #                 + get_description(entry)
+    #                 + "</i>"
+    #                 + "\n"
+    #                 + '<a href="'
+    #                 + get_article_url(entry)
+    #                 + '">[Continue reading]</a>'
+    #                 + "\n"
+    #                 + get_source(entry)
+    #                 + "\n"
+    #                 + get_date(entry)
+    #             )
+    #             context.bot.send_message(
+    #                 chat_id=update.effective_chat.id,
+    #                 text=message,
+    #                 parse_mode=telegram.ParseMode.HTML,
+    #                 disable_web_page_preview=True,
+    #             )
+
+    #     print("Image: " + get_image_url(entry))
+    #     print("Title: " + get_title(entry))
+    #     print("Description: " + get_description(entry))
+    #     print("Content: " + get_content(entry).replace("\n", ". "))
+    #     print("URL: " + get_article_url(entry))
+    #     print("Source: " + get_source(entry))
+    #     print("Date: " + get_date(entry))
+    #     print("\n")
 
 
 # Business
