@@ -82,11 +82,15 @@ def get_rss_image(entry):
     try:
         thisdict = entry.media_content[0]
         media = thisdict["url"]
+    except:
+        pass
+    if not media:
+        print("Image: No image available.")
+        media = "https://raw.githubusercontent.com/AmielFilarca/HeadlinesPH/master/no_image.png"
+        return media
+    else:
         print("Image: " + media)
         return media
-    except AttributeError:
-        print("Image: No image available.")
-        return ""
 
 
 def get_rss_text(entry):
@@ -252,21 +256,13 @@ def send_top_headline(update, context):
     entry = entries[random.randrange(len(entries))]
     media = get_rss_image(entry)
     text = get_rss_text(entry)
-    if media != "":
-        context.bot.send_photo(chat_id=update.effective_chat.id, photo=media)
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=text,
-            parse_mode=telegram.ParseMode.HTML,
-            disable_web_page_preview=True,
-        )
-    else:
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=text,
-            parse_mode=telegram.ParseMode.HTML,
-            disable_web_page_preview=True,
-        )
+    context.bot.send_photo(chat_id=update.effective_chat.id, photo=media)
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=text,
+        parse_mode=telegram.ParseMode.HTML,
+        disable_web_page_preview=True,
+    )
     # * News API
     # entries = get_top_headlines_entries()
     # entry = entries[random.randrange(len(entries))]
