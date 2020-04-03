@@ -211,7 +211,9 @@ def get_source(entry):
 def get_date(entry):
     entry_publishedAt = entry["publishedAt"]
     entry_publishedAt_date = parse(entry_publishedAt)
-    entry_date = entry_publishedAt_date.strftime("%a, %d %b %Y @ %I:%M %p")
+    date_format = "%a, %d %b %Y @ %I:%M %p"
+    manila_tz = entry_publishedAt_date.astimezone(timezone("Asia/Manila"))
+    entry_date = manila_tz.strftime(date_format)
     return str(entry_date)
 
 
