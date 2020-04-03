@@ -1,5 +1,5 @@
 .gitattributes
 API-keys.json
 NewsAPI.py
-HeadlinesPHBot.py
+covid.py
 Bot Info.txt

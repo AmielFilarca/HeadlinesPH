@@ -17,6 +17,7 @@ import feedparser
 from bs4 import BeautifulSoup
 from datetime import datetime
 from pytz import timezone
+import requests
 
 
 # Get functions
@@ -225,6 +226,113 @@ def get_date(entry):
 def get_article_url(entry):
     entry_url = entry["url"]
     return str(entry_url)
+
+
+def get_cases_dict():
+    with open("API-keys.json") as tokens:
+        api_keys = json.load(tokens)
+    # Get page content
+    URL = api_keys["COVID-19"]
+    page = requests.get(URL)
+    page_content = BeautifulSoup(page.content, "lxml")
+    # Init dict
+    cases_dict = {
+        "cases": "",
+        "deaths": "",
+        "recovered": "",
+        "last_update": "",
+        "active_cases": "",
+        "mild_condition": "",
+        "critical_condition": "",
+        "closed_cases": "",
+        "recovered_discharged": "",
+        "died": "",
+    }
+    # Get date of last update
+    date_div = page_content.find(
+        "div", style="font-size:13px; color:#999; text-align:center"
+    )
+    date_str = date_div.get_text().replace("Last updated:", "")
+    date_dt = parse(date_str)
+    date_format = "%a, %d %b %Y @ %I:%M %p"
+    manila_tz = date_dt.astimezone(timezone("Asia/Manila"))
+    date = manila_tz.strftime(date_format)
+    cases_dict["last_update"] = date
+    # Get main counters data
+    counters = page_content.findAll(class_="maincounter-number")
+    data = []
+    for counter in counters:
+        number = counter.find("span").get_text().strip()
+        data.append(number)
+    # Put main counters data in dict
+    cases_dict["cases"] = data[0]
+    cases_dict["deaths"] = data[1]
+    cases_dict["recovered"] = data[2]
+    # Currently Infected Patients & Cases which had an outcome
+    num_list = []
+    div = page_content.findAll("div", class_="number-table-main")
+    for d in div:
+        text = d.get_text()
+        num_list.append(text)
+    cases_dict["active_cases"] = num_list[0]
+    cases_dict["closed_cases"] = num_list[1]
+    # in Mild Condition & Recovered/Discharged
+    left_div = page_content.findAll("div", style="float:left; text-align:center")
+    cases_dict["mild_condition"] = left_div[0].get_text().strip().split("\n")[0]
+    cases_dict["recovered_discharged"] = " ".join(
+        left_div[1].get_text().strip().split("\n")[:2]
+    )
+    # Serious or Critical & Deaths
+    right_div = page_content.findAll("div", style="float:right; text-align:center")
+    cases_dict["critical_condition"] = right_div[0].get_text().strip().split("\n")[0]
+    cases_dict["died"] = " ".join(right_div[1].get_text().strip().split("\n")[:2])
+    # Return dict
+    return cases_dict
+
+
+def get_covid_report():
+    cases_dict = get_cases_dict()
+    report = (
+        "🇵🇭 <b>Philippines</b>"
+        + "\n"
+        + "• <b>Cases:</b> "
+        + cases_dict["cases"]
+        + "\n"
+        + "• <b>Deaths:</b> "
+        + cases_dict["deaths"]
+        + "\n"
+        + "• <b>Recovered:</b> "
+        + cases_dict["recovered"]
+        + "\n"
+        + "\n"
+        + "<b>Active Cases</b>"
+        + "\n"
+        + cases_dict["active_cases"]
+        + " currently infected patients."
+        + "\n"
+        + cases_dict["mild_condition"]
+        + " in mild condition."
+        + "\n"
+        + cases_dict["critical_condition"]
+        + " in serious or critical condition."
+        + "\n"
+        + "\n"
+        + "<b>Closed Cases</b>"
+        + "\n"
+        + cases_dict["closed_cases"]
+        + " cases which had an outcome."
+        + "\n"
+        + cases_dict["recovered_discharged"]
+        + " recovered/discharged."
+        + "\n"
+        + cases_dict["died"]
+        + " deaths."
+        + "\n"
+        + "\n"
+        + "Last updated: "
+        + cases_dict["last_update"]
+    )
+    return report
 
 
 # Send functions
@@ -1480,6 +1588,18 @@ def send_custom_news(update, context):
             print("\n")
 
 
+# COVID-19
+@send_typing_action
+def send_covid_report(update, context):
+    message = get_covid_report()
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=message,
+        parse_mode=telegram.ParseMode.HTML,
+        disable_web_page_preview=True,
+    )
+
+
 # Main
 def main():
     # Telegram token
@@ -1503,6 +1623,7 @@ def main():
     dispatcher.add_handler(CommandHandler("sports", send_sports_news))
     dispatcher.add_handler(CommandHandler("technology", send_technology_news))
     dispatcher.add_handler(CommandHandler("search", send_custom_news))
+    dispatcher.add_handler(CommandHandler("covid", send_covid_report))
     # Start bot
     updater.start_polling()
     updater.idle()
