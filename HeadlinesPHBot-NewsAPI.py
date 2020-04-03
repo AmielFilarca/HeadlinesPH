@@ -85,6 +85,7 @@ def get_rss_image(entry):
         print("Image: " + media)
         return media
     except AttributeError:
+        print("Image: No image available.")
         return ""
 
 
@@ -251,7 +252,7 @@ def send_top_headline(update, context):
     entry = entries[random.randrange(len(entries))]
     media = get_rss_image(entry)
     text = get_rss_text(entry)
-    if media:
+    if media != "":
         context.bot.send_photo(chat_id=update.effective_chat.id, photo=media)
         context.bot.send_message(
             chat_id=update.effective_chat.id,
