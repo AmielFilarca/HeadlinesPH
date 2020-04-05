@@ -241,12 +241,12 @@ def get_cases_dict():
         "deaths": "",
         "recovered": "",
         "last_update": "",
-        "active_cases": "",
-        "mild_condition": "",
-        "critical_condition": "",
-        "closed_cases": "",
-        "recovered_discharged": "",
-        "died": "",
+        # "active_cases": "",
+        # "mild_condition": "",
+        # "critical_condition": "",
+        # "closed_cases": "",
+        # "recovered_discharged": "",
+        # "died": "",
     }
     # Get date of last update
     date_div = page_content.find(
@@ -268,25 +268,25 @@ def get_cases_dict():
     cases_dict["cases"] = data[0]
     cases_dict["deaths"] = data[1]
     cases_dict["recovered"] = data[2]
-    # Currently Infected Patients & Cases which had an outcome
-    num_list = []
-    div = page_content.findAll("div", class_="number-table-main")
-    for d in div:
-        text = d.get_text()
-        num_list.append(text)
-    cases_dict["active_cases"] = num_list[0]
-    cases_dict["closed_cases"] = num_list[1]
-    # in Mild Condition & Recovered/Discharged
-    left_div = page_content.findAll("div", style="float:left; text-align:center")
-    cases_dict["mild_condition"] = left_div[0].get_text().strip().split("\n")[0]
-    cases_dict["recovered_discharged"] = " ".join(
-        left_div[1].get_text().strip().split("\n")[:2]
-    )
-    # Serious or Critical & Deaths
-    right_div = page_content.findAll("div", style="float:right; text-align:center")
-    cases_dict["critical_condition"] = right_div[0].get_text().strip().split("\n")[0]
-    cases_dict["died"] = " ".join(right_div[1].get_text().strip().split("\n")[:2])
-    # Return dict
+    # # Currently Infected Patients & Cases which had an outcome
+    # num_list = []
+    # div = page_content.findAll("div", class_="number-table-main")
+    # for d in div:
+    #     text = d.get_text()
+    #     num_list.append(text)
+    # cases_dict["active_cases"] = num_list[0]
+    # cases_dict["closed_cases"] = num_list[1]
+    # # in Mild Condition & Recovered/Discharged
+    # left_div = page_content.findAll("div", style="float:left; text-align:center")
+    # cases_dict["mild_condition"] = left_div[0].get_text().strip().split("\n")[0]
+    # cases_dict["recovered_discharged"] = " ".join(
+    #     left_div[1].get_text().strip().split("\n")[:2]
+    # )
+    # # Serious or Critical & Deaths
+    # right_div = page_content.findAll("div", style="float:right; text-align:center")
+    # cases_dict["critical_condition"] = right_div[0].get_text().strip().split("\n")[0]
+    # cases_dict["died"] = " ".join(right_div[1].get_text().strip().split("\n")[:2])
+    # # Return dict
     return cases_dict
 
 
@@ -303,30 +303,30 @@ def get_covid_report():
         + "\n"
         + "• <b>Recovered:</b> "
         + cases_dict["recovered"]
-        + "\n"
-        + "\n"
-        + "<b>Active Cases</b>"
-        + "\n"
-        + cases_dict["active_cases"]
-        + " currently infected patients."
-        + "\n"
-        + cases_dict["mild_condition"]
-        + " in mild condition."
-        + "\n"
-        + cases_dict["critical_condition"]
-        + " in serious or critical condition."
-        + "\n"
-        + "\n"
-        + "<b>Closed Cases</b>"
-        + "\n"
-        + cases_dict["closed_cases"]
-        + " cases which had an outcome."
-        + "\n"
-        + cases_dict["recovered_discharged"]
-        + " recovered/discharged."
-        + "\n"
-        + cases_dict["died"]
-        + " deaths."
+        # + "\n"
+        # + "\n"
+        # + "<b>Active Cases</b>"
+        # + "\n"
+        # + cases_dict["active_cases"]
+        # + " currently infected patients."
+        # + "\n"
+        # + cases_dict["mild_condition"]
+        # + " in mild condition."
+        # + "\n"
+        # + cases_dict["critical_condition"]
+        # + " in serious or critical condition."
+        # + "\n"
+        # + "\n"
+        # + "<b>Closed Cases</b>"
+        # + "\n"
+        # + cases_dict["closed_cases"]
+        # + " cases which had an outcome."
+        # + "\n"
+        # + cases_dict["recovered_discharged"]
+        # + " recovered/discharged."
+        # + "\n"
+        # + cases_dict["died"]
+        # + " deaths."
         + "\n"
         + "\n"
         + "Last updated: "
